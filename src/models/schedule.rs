@@ -1,6 +1,7 @@
 use std::fmt;
 
 #[derive(Debug, sqlx::FromRow)]
+#[allow(dead_code)]
 pub struct Schedule {
     pub id: i64,
     pub name: String,

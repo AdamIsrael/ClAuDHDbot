@@ -2,6 +2,7 @@ use std::fmt;
 use std::str::FromStr;
 
 #[derive(Debug, sqlx::FromRow)]
+#[allow(dead_code)]
 pub struct Task {
     pub id: i64,
     pub title: String,
