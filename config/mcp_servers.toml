@@ -1,0 +1,12 @@
+# MCP server definitions
+# Example:
+# [[mcp.servers]]
+# name = "filesystem"
+# command = "npx"
+# args = ["-y", "@modelcontextprotocol/server-filesystem", "/some/path"]
+
+# TODO: Need to figure out where/how to host this, or to use the stdio cli
+# [[mcp.servers]]
+# name = "SearXNG"
+# command = "search"
+# args = []
