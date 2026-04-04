@@ -88,8 +88,9 @@ async fn execute_tool_call(
     tool_name: &str,
     args: &serde_json::Value,
 ) -> anyhow::Result<serde_json::Value> {
-    let (server, tool) = McpManager::parse_tool_name(tool_name)
-        .ok_or_else(|| anyhow::anyhow!("Invalid tool name format: {tool_name} (expected server.tool)"))?;
+    let (server, tool) = McpManager::parse_tool_name(tool_name).ok_or_else(|| {
+        anyhow::anyhow!("Invalid tool name format: {tool_name} (expected server.tool)")
+    })?;
 
     mcp.call_tool(server, tool, args.clone()).await
 }

@@ -1,11 +1,16 @@
 use sqlx::SqlitePool;
 
-use crate::models::task::{Task, Priority, Status};
+use crate::models::task::{Priority, Status, Task};
 
-pub async fn create(pool: &SqlitePool, title: &str, description: Option<&str>, priority: Priority) -> anyhow::Result<Task> {
+pub async fn create(
+    pool: &SqlitePool,
+    title: &str,
+    description: Option<&str>,
+    priority: Priority,
+) -> anyhow::Result<Task> {
     let priority_str = priority.to_string();
     let row = sqlx::query_as::<_, Task>(
-        "INSERT INTO tasks (title, description, priority) VALUES (?, ?, ?) RETURNING *"
+        "INSERT INTO tasks (title, description, priority) VALUES (?, ?, ?) RETURNING *",
     )
     .bind(title)
     .bind(description)
@@ -37,13 +42,12 @@ pub async fn list(pool: &SqlitePool, status: Option<Status>) -> anyhow::Result<V
 
 pub async fn update_status(pool: &SqlitePool, id: i64, status: Status) -> anyhow::Result<bool> {
     let status_str = status.to_string();
-    let result = sqlx::query(
-        "UPDATE tasks SET status = ?, updated_at = datetime('now') WHERE id = ?"
-    )
-    .bind(&status_str)
-    .bind(id)
-    .execute(pool)
-    .await?;
+    let result =
+        sqlx::query("UPDATE tasks SET status = ?, updated_at = datetime('now') WHERE id = ?")
+            .bind(&status_str)
+            .bind(id)
+            .execute(pool)
+            .await?;
 
     Ok(result.rows_affected() > 0)
 }
@@ -72,7 +76,9 @@ mod tests {
     async fn test_create_and_list() {
         let pool = setup_db().await;
 
-        let task = create(&pool, "Buy groceries", None, Priority::High).await.unwrap();
+        let task = create(&pool, "Buy groceries", None, Priority::High)
+            .await
+            .unwrap();
         assert_eq!(task.title, "Buy groceries");
         assert_eq!(task.priority, "high");
         assert_eq!(task.status, "pending");
@@ -85,7 +91,9 @@ mod tests {
     async fn test_update_status() {
         let pool = setup_db().await;
 
-        let task = create(&pool, "Test task", None, Priority::Medium).await.unwrap();
+        let task = create(&pool, "Test task", None, Priority::Medium)
+            .await
+            .unwrap();
         let updated = update_status(&pool, task.id, Status::Done).await.unwrap();
         assert!(updated);
 
@@ -102,7 +110,9 @@ mod tests {
     async fn test_delete() {
         let pool = setup_db().await;
 
-        let task = create(&pool, "Delete me", None, Priority::Low).await.unwrap();
+        let task = create(&pool, "Delete me", None, Priority::Low)
+            .await
+            .unwrap();
         let deleted = delete(&pool, task.id).await.unwrap();
         assert!(deleted);
 

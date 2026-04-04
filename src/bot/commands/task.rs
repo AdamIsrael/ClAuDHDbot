@@ -25,13 +25,7 @@ async fn add(
         None => Priority::Medium,
     };
 
-    let task = db::tasks::create(
-        &ctx.data().db,
-        &title,
-        description.as_deref(),
-        priority,
-    )
-    .await?;
+    let task = db::tasks::create(&ctx.data().db, &title, description.as_deref(), priority).await?;
 
     ctx.say(format!("Created task #{}: {}", task.id, task.title))
         .await?;
@@ -63,10 +57,7 @@ async fn list(
 
 /// Mark a task as done.
 #[poise::command(slash_command, prefix_command)]
-async fn done(
-    ctx: Context<'_>,
-    #[description = "Task ID"] id: i64,
-) -> Result<(), Error> {
+async fn done(ctx: Context<'_>, #[description = "Task ID"] id: i64) -> Result<(), Error> {
     if db::tasks::update_status(&ctx.data().db, id, Status::Done).await? {
         ctx.say(format!("Task #{id} marked as done.")).await?;
     } else {
@@ -77,10 +68,7 @@ async fn done(
 
 /// Claim a task (mark as in progress).
 #[poise::command(slash_command, prefix_command)]
-async fn claim(
-    ctx: Context<'_>,
-    #[description = "Task ID"] id: i64,
-) -> Result<(), Error> {
+async fn claim(ctx: Context<'_>, #[description = "Task ID"] id: i64) -> Result<(), Error> {
     if db::tasks::update_status(&ctx.data().db, id, Status::InProgress).await? {
         ctx.say(format!("Task #{id} claimed.")).await?;
     } else {
@@ -91,10 +79,7 @@ async fn claim(
 
 /// Release a task (mark as pending).
 #[poise::command(slash_command, prefix_command)]
-async fn release(
-    ctx: Context<'_>,
-    #[description = "Task ID"] id: i64,
-) -> Result<(), Error> {
+async fn release(ctx: Context<'_>, #[description = "Task ID"] id: i64) -> Result<(), Error> {
     if db::tasks::update_status(&ctx.data().db, id, Status::Pending).await? {
         ctx.say(format!("Task #{id} released.")).await?;
     } else {
@@ -105,10 +90,7 @@ async fn release(
 
 /// Delete a task.
 #[poise::command(slash_command, prefix_command)]
-async fn delete(
-    ctx: Context<'_>,
-    #[description = "Task ID"] id: i64,
-) -> Result<(), Error> {
+async fn delete(ctx: Context<'_>, #[description = "Task ID"] id: i64) -> Result<(), Error> {
     if db::tasks::delete(&ctx.data().db, id).await? {
         ctx.say(format!("Task #{id} deleted.")).await?;
     } else {

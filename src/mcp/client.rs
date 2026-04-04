@@ -35,7 +35,11 @@ impl McpClient {
     }
 
     /// Call a tool by name with the given JSON arguments.
-    pub async fn call_tool(&self, name: &str, args: serde_json::Value) -> anyhow::Result<serde_json::Value> {
+    pub async fn call_tool(
+        &self,
+        name: &str,
+        args: serde_json::Value,
+    ) -> anyhow::Result<serde_json::Value> {
         let arguments = args.as_object().cloned();
 
         let mut params = CallToolRequestParams::new(name.to_string());

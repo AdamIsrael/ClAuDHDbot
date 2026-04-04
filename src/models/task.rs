@@ -63,7 +63,9 @@ impl FromStr for Priority {
             "medium" | "med" => Ok(Self::Medium),
             "high" => Ok(Self::High),
             "urgent" => Ok(Self::Urgent),
-            _ => Err(anyhow::anyhow!("Unknown priority: {s}. Use: low, medium, high, urgent")),
+            _ => Err(anyhow::anyhow!(
+                "Unknown priority: {s}. Use: low, medium, high, urgent"
+            )),
         }
     }
 }
@@ -93,7 +95,9 @@ impl FromStr for Status {
             "pending" => Ok(Self::Pending),
             "in_progress" | "in-progress" | "active" => Ok(Self::InProgress),
             "done" | "complete" | "completed" => Ok(Self::Done),
-            _ => Err(anyhow::anyhow!("Unknown status: {s}. Use: pending, in_progress, done")),
+            _ => Err(anyhow::anyhow!(
+                "Unknown status: {s}. Use: pending, in_progress, done"
+            )),
         }
     }
 }

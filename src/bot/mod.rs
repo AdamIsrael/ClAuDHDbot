@@ -54,8 +54,7 @@ pub async fn run(
                 poise::builtins::register_globally(ctx, &framework.options().commands).await?;
 
                 let http = ctx.http.clone();
-                let scheduler =
-                    Scheduler::start(&db, http, config.discord.owner_id).await?;
+                let scheduler = Scheduler::start(&db, http, config.discord.owner_id).await?;
 
                 tracing::info!("Bot is ready!");
                 Ok(Data {

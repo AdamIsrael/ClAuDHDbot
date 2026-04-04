@@ -22,9 +22,9 @@ async fn add(
     message: String,
 ) -> Result<(), Error> {
     // Validate cron expression by trying to create a job
-    if let Err(e) = tokio_cron_scheduler::Job::new_async(cron_expr.as_str(), |_uuid, _lock| {
-        Box::pin(async {})
-    }) {
+    if let Err(e) =
+        tokio_cron_scheduler::Job::new_async(cron_expr.as_str(), |_uuid, _lock| Box::pin(async {}))
+    {
         ctx.say(format!("Invalid cron expression: {e}")).await?;
         return Ok(());
     }
@@ -104,9 +104,7 @@ async fn enable(
     match schedule {
         Some(s) if !s.enabled => {
             db::schedules::set_enabled(&data.db, s.id, true).await?;
-            let updated = db::schedules::get_by_name(&data.db, &name)
-                .await?
-                .unwrap();
+            let updated = db::schedules::get_by_name(&data.db, &name).await?.unwrap();
             let mut scheduler = data.scheduler.lock().await;
             scheduler.add_job(&updated).await?;
             ctx.say(format!("Enabled schedule **{name}**.")).await?;

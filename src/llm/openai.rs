@@ -65,7 +65,14 @@ impl OpenAiProvider {
                         }],
                     }));
                 }
-                (Role::User, MessageContent::ToolResult { tool_use_id, content, .. }) => {
+                (
+                    Role::User,
+                    MessageContent::ToolResult {
+                        tool_use_id,
+                        content,
+                        ..
+                    },
+                ) => {
                     api_messages.push(json!({
                         "role": "tool",
                         "tool_call_id": tool_use_id,
@@ -115,9 +122,10 @@ impl LlmProvider for OpenAiProvider {
             body["tools"] = json!(api_tools);
         }
 
-        let mut request = self
-            .client
-            .post(format!("{}/chat/completions", self.base_url.trim_end_matches('/')));
+        let mut request = self.client.post(format!(
+            "{}/chat/completions",
+            self.base_url.trim_end_matches('/')
+        ));
 
         if let Some(ref api_key) = self.api_key {
             request = request.header("Authorization", format!("Bearer {api_key}"));
@@ -160,10 +168,7 @@ impl LlmProvider for OpenAiProvider {
             }
         }
 
-        let text = message["content"]
-            .as_str()
-            .unwrap_or("")
-            .to_string();
+        let text = message["content"].as_str().unwrap_or("").to_string();
 
         Ok(LlmResponse::Text(text))
     }

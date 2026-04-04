@@ -58,7 +58,14 @@ impl ClaudeProvider {
                         }],
                     }));
                 }
-                (Role::User, MessageContent::ToolResult { tool_use_id, content, is_error }) => {
+                (
+                    Role::User,
+                    MessageContent::ToolResult {
+                        tool_use_id,
+                        content,
+                        is_error,
+                    },
+                ) => {
                     api_messages.push(json!({
                         "role": "user",
                         "content": [{
