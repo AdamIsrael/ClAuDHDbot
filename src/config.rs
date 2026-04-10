@@ -17,6 +17,9 @@ pub struct Config {
 pub struct DiscordConfig {
     pub token: String,
     pub owner_id: u64,
+    /// When set, commands register to this guild instantly (for development).
+    /// Without this, global commands can take up to an hour to propagate.
+    pub dev_guild_id: Option<u64>,
 }
 
 #[derive(Debug, Deserialize, Clone)]

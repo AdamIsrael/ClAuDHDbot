@@ -1,5 +1,6 @@
 use crate::bot::{Context, Error};
 use crate::db;
+use crate::llm::{ChatMessage, LlmResponse, MessageContent, Role};
 
 /// Manage scheduled jobs.
 #[poise::command(
@@ -11,21 +12,91 @@ pub async fn schedule(_ctx: Context<'_>) -> Result<(), Error> {
     Ok(())
 }
 
+/// Ensure a cron expression has 6 fields (tokio-cron-scheduler requires seconds).
+/// If given a standard 5-field expression, prepend "0" for seconds.
+fn normalize_cron(expr: &str) -> String {
+    let parts: Vec<&str> = expr.split_whitespace().collect();
+    if parts.len() == 5 {
+        format!("0 {expr}")
+    } else {
+        expr.to_string()
+    }
+}
+
+/// Convert a natural language schedule to a cron expression using the LLM.
+async fn resolve_cron_expr(ctx: &Context<'_>, input: &str) -> Result<String, Error> {
+    // If it already looks like a cron expression (5 or 6 fields), use it directly
+    let parts: Vec<&str> = input.split_whitespace().collect();
+    if (parts.len() == 5 || parts.len() == 6)
+        && parts
+            .iter()
+            .all(|p| p.chars().all(|c| c.is_ascii_digit() || "/*,-".contains(c)))
+    {
+        return Ok(normalize_cron(input));
+    }
+
+    let messages = vec![
+        ChatMessage {
+            role: Role::System,
+            content: MessageContent::Text(
+                "Convert the user's schedule description to a standard 5-field cron expression \
+                 (minute hour day-of-month month day-of-week). Respond with ONLY the cron \
+                 expression, nothing else. Examples:\n\
+                 - \"every day at 8am\" -> \"0 8 * * *\"\n\
+                 - \"every Monday at 9:30am\" -> \"30 9 * * 1\"\n\
+                 - \"every hour\" -> \"0 * * * *\"\n\
+                 - \"weekdays at 6pm\" -> \"0 18 * * 1-5\"\n\
+                 - \"every 15 minutes\" -> \"*/15 * * * *\"\n\
+                 If you cannot parse it, respond with \"ERROR: \" followed by a brief explanation."
+                    .to_string(),
+            ),
+        },
+        ChatMessage {
+            role: Role::User,
+            content: MessageContent::Text(input.to_string()),
+        },
+    ];
+
+    let response = ctx.data().llm.chat(&messages, &[]).await?;
+
+    match response {
+        LlmResponse::Text(text) => {
+            let text = text.trim().to_string();
+            if text.starts_with("ERROR:") {
+                Err(text.into())
+            } else {
+                Ok(normalize_cron(&text))
+            }
+        }
+        _ => Err("Unexpected LLM response".into()),
+    }
+}
+
 /// Add a new scheduled job.
 #[poise::command(slash_command, prefix_command)]
 async fn add(
     ctx: Context<'_>,
     #[description = "Unique name for this schedule"] name: String,
-    #[description = "Cron expression (e.g. '0 8 * * *' for daily at 8am UTC)"] cron_expr: String,
+    #[description = "When to run (e.g. 'every day at 8am', 'weekdays at 6pm', or cron)"]
+    when: String,
     #[description = "Message to send when triggered"]
-    #[rest]
     message: String,
 ) -> Result<(), Error> {
-    // Validate cron expression by trying to create a job
+    ctx.defer().await?;
+
+    let cron_expr = match resolve_cron_expr(&ctx, &when).await {
+        Ok(expr) => expr,
+        Err(e) => {
+            ctx.say(format!("Couldn't parse schedule: {e}")).await?;
+            return Ok(());
+        }
+    };
+
+    // Validate the cron expression
     if let Err(e) =
         tokio_cron_scheduler::Job::new_async(cron_expr.as_str(), |_uuid, _lock| Box::pin(async {}))
     {
-        ctx.say(format!("Invalid cron expression: {e}")).await?;
+        ctx.say(format!("Invalid cron expression `{cron_expr}`: {e}")).await?;
         return Ok(());
     }
 
@@ -34,11 +105,12 @@ async fn add(
 
     match schedule {
         Ok(schedule) => {
-            // Add to the live scheduler
             let mut scheduler = data.scheduler.lock().await;
             scheduler.add_job(&schedule).await?;
-            ctx.say(format!("Scheduled **{name}** with cron `{cron_expr}`"))
-                .await?;
+            ctx.say(format!(
+                "Scheduled **{name}** — `{cron_expr}` (from \"{when}\")"
+            ))
+            .await?;
         }
         Err(e) => {
             let msg = if e.to_string().contains("UNIQUE") {

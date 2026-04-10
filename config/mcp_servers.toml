@@ -10,3 +10,13 @@
 # name = "SearXNG"
 # command = "search"
 # args = []
+
+[[mcp.servers]]
+name = "Fastmail"
+command = "/Users/adam/bin/mcp-fastmail.sh"
+args = []
+
+[[mcp.servers]]
+name = "Fastmail CalDav"
+command = "/Users/adam/bin/mcp-caldav"
+args = []
