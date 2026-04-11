@@ -6,8 +6,10 @@ pub async fn tools(ctx: Context<'_>) -> Result<(), Error> {
     let all_tools = ctx.data().mcp.list_all_tools().await;
 
     if all_tools.is_empty() {
-        ctx.say("No MCP tools available. Configure servers in `~/.config/claudhdbot/mcp_servers.toml`.")
-            .await?;
+        ctx.say(
+            "No MCP tools available. Configure servers in `~/.config/claudhdbot/mcp_servers.toml`.",
+        )
+        .await?;
         return Ok(());
     }
 

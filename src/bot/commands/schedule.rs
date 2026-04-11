@@ -79,8 +79,7 @@ async fn add(
     #[description = "Unique name for this schedule"] name: String,
     #[description = "When to run (e.g. 'every day at 8am', 'weekdays at 6pm', or cron)"]
     when: String,
-    #[description = "Message to send when triggered"]
-    message: String,
+    #[description = "Message to send when triggered"] message: String,
 ) -> Result<(), Error> {
     ctx.defer().await?;
 
@@ -96,7 +95,8 @@ async fn add(
     if let Err(e) =
         tokio_cron_scheduler::Job::new_async(cron_expr.as_str(), |_uuid, _lock| Box::pin(async {}))
     {
-        ctx.say(format!("Invalid cron expression `{cron_expr}`: {e}")).await?;
+        ctx.say(format!("Invalid cron expression `{cron_expr}`: {e}"))
+            .await?;
         return Ok(());
     }
 
