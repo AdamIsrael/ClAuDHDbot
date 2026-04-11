@@ -9,7 +9,7 @@ claudhdbot — an AI-powered personal assistant Discord bot. Rust edition 2024.
 ## Build & Run Commands
 
 - **Build:** `cargo build`
-- **Run:** `cargo run` (requires config/default.toml + env vars, see .env.example)
+- **Run:** `cargo run` (requires `$HOME/.config/claudhdbot/default.toml` + env vars, see `.env.example` and `config/*.example`)
 - **Test all:** `cargo test`
 - **Test single:** `cargo test <test_name>`
 - **Lint:** `cargo clippy`
@@ -31,7 +31,9 @@ User question → LLM with MCP tool definitions → LLM may return tool_use → 
 
 ## Configuration
 
-- `config/default.toml` — non-secret defaults
-- `config/mcp_servers.toml` — MCP server definitions
+- `$HOME/.config/claudhdbot/default.toml` — non-secret defaults
+- `$HOME/.config/claudhdbot/mcp_servers.toml` — MCP server definitions
+- `config/*.toml.example` — checked-in templates to copy into the config dir
+- `CLAUDHD_CONFIG_DIR` env var overrides the config directory location
 - Environment variables prefixed `CLAUDHD_` with `__` as separator (e.g., `CLAUDHD_DISCORD__TOKEN`)
 - Loaded via figment: TOML files merged, then env vars override

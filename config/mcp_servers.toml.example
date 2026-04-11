@@ -1,0 +1,20 @@
+# MCP server definitions.
+#
+# Copy this file to $XDG_CONFIG_HOME/claudhdbot/mcp_servers.toml (typically
+# $HOME/.config/claudhdbot/mcp_servers.toml) and edit to taste. Each server is
+# launched at startup over stdio; tools are namespaced as `server.tool`.
+
+# [[mcp.servers]]
+# name = "filesystem"
+# command = "npx"
+# args = ["-y", "@modelcontextprotocol/server-filesystem", "/some/path"]
+
+# [[mcp.servers]]
+# name = "Fastmail"
+# command = "/path/to/mcp-fastmail.sh"
+# args = []
+
+# [[mcp.servers]]
+# name = "Fastmail CalDav"
+# command = "/path/to/mcp-caldav"
+# args = []

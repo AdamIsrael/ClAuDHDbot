@@ -1,0 +1,11 @@
+# Copy this file to $XDG_CONFIG_HOME/claudhdbot/default.toml (typically
+# $HOME/.config/claudhdbot/default.toml) and edit as needed. Secrets such as
+# the Discord token and LLM API key should come from the environment (see
+# .env.example), not this file.
+
+[database]
+url = "sqlite:claudhdbot.db?mode=rwc"
+
+[llm]
+provider = "claude"
+model = "claude-sonnet-4-20250514"

@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use figment::{
     Figment,
     providers::{Env, Format, Toml},
@@ -55,10 +57,22 @@ pub fn load() -> anyhow::Result<Config> {
     // Load .env file if present (vars won't override existing env)
     let _ = dotenvy::dotenv();
 
+    let config_dir = config_dir()?;
     let config = Figment::new()
-        .merge(Toml::file("config/default.toml"))
-        .merge(Toml::file("config/mcp_servers.toml"))
+        .merge(Toml::file(config_dir.join("default.toml")))
+        .merge(Toml::file(config_dir.join("mcp_servers.toml")))
         .merge(Env::prefixed("CLAUDHD_").split("__"))
         .extract()?;
     Ok(config)
+}
+
+/// Resolve the config directory: `$CLAUDHD_CONFIG_DIR` if set, otherwise
+/// `$XDG_CONFIG_HOME/claudhdbot` (falling back to `$HOME/.config/claudhdbot`).
+fn config_dir() -> anyhow::Result<PathBuf> {
+    if let Ok(dir) = std::env::var("CLAUDHD_CONFIG_DIR") {
+        return Ok(PathBuf::from(dir));
+    }
+    let base = dirs::config_dir()
+        .ok_or_else(|| anyhow::anyhow!("could not determine user config directory"))?;
+    Ok(base.join("claudhdbot"))
 }

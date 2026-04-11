@@ -4,3 +4,5 @@
 *.db-wal
 .env
 config/local.toml
+config/default.toml
+config/mcp_servers.toml

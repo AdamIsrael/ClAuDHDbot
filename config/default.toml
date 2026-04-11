@@ -1,6 +1,0 @@
-[database]
-url = "sqlite:claudhdbot.db?mode=rwc"
-
-[llm]
-provider = "claude"
-model = "claude-sonnet-4-20250514"

@@ -59,14 +59,16 @@ cargo run
 
 Configuration is loaded from TOML files and environment variables (via [figment](https://docs.rs/figment)):
 
-- `config/default.toml` — non-secret defaults (database URL, LLM model)
-- `config/mcp_servers.toml` — MCP server definitions
+- `$HOME/.config/claudhdbot/default.toml` — non-secret defaults (database URL, LLM model)
+- `$HOME/.config/claudhdbot/mcp_servers.toml` — MCP server definitions
+- `config/default.toml.example` / `config/mcp_servers.toml.example` — templates; copy into the config dir above
 - `.env` — secrets (loaded via dotenvy)
 - Environment variables prefixed `CLAUDHD_` with `__` as nested separator
+- Set `CLAUDHD_CONFIG_DIR` to override the config directory location
 
 ### MCP Servers
 
-Define MCP servers in `config/mcp_servers.toml`:
+Define MCP servers in `$HOME/.config/claudhdbot/mcp_servers.toml` (see `config/mcp_servers.toml.example`):
 
 ```toml
 [[mcp.servers]]
