@@ -6,3 +6,7 @@
 config/local.toml
 config/default.toml
 config/mcp_servers.toml
+
+# Beads / Dolt files (added by bd init)
+.dolt/
+.beads-credential-key
