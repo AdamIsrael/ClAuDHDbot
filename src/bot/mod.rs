@@ -9,7 +9,7 @@ use tokio::sync::Mutex;
 use crate::config::Config;
 use crate::llm::LlmProvider;
 use crate::mcp::McpManager;
-use crate::scheduler::Scheduler;
+use crate::scheduler::{DmSender, Scheduler};
 
 pub struct Data {
     pub db: SqlitePool,
@@ -79,8 +79,8 @@ pub async fn run(
                     tracing::info!("Commands also registered to dev guild {guild_id} (instant)");
                 }
 
-                let http = ctx.http.clone();
-                let scheduler = Scheduler::start(&db, http, config.discord.owner_id).await?;
+                let dm_sender: Arc<dyn DmSender> = ctx.http.clone();
+                let scheduler = Scheduler::start(&db, dm_sender, config.discord.owner_id).await?;
 
                 let mcp = Arc::new(mcp);
 
