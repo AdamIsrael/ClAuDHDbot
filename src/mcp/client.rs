@@ -1,14 +1,14 @@
+use async_trait::async_trait;
 use rmcp::{
-    ServiceExt,
-    model::{CallToolRequestParams, Tool},
-    service::RunningService,
-    transport::TokioChildProcess,
+    ServiceExt, model::CallToolRequestParams, service::RunningService, transport::TokioChildProcess,
 };
+use serde_json::Value as JsonValue;
 use tokio::process::Command;
 
 use crate::config::McpServerConfig;
+use crate::mcp::{McpClientLike, ToolDescriptor};
 
-/// A wrapper around a single MCP server connection.
+/// A wrapper around a single MCP server connection over stdio.
 pub struct McpClient {
     client: RunningService<rmcp::RoleClient, ()>,
 }
@@ -27,15 +27,27 @@ impl McpClient {
 
         Ok(Self { client })
     }
+}
 
-    /// List all tools available on this server.
-    pub async fn list_tools(&self) -> anyhow::Result<Vec<Tool>> {
+#[async_trait]
+impl McpClientLike for McpClient {
+    async fn list_tools(&self) -> anyhow::Result<Vec<ToolDescriptor>> {
         let result = self.client.list_tools(Default::default()).await?;
-        Ok(result.tools)
+        Ok(result
+            .tools
+            .into_iter()
+            .map(|tool| {
+                let schema = JsonValue::Object((*tool.input_schema).clone());
+                ToolDescriptor {
+                    name: tool.name.to_string(),
+                    description: tool.description.unwrap_or_default().to_string(),
+                    input_schema: schema,
+                }
+            })
+            .collect())
     }
 
-    /// Call a tool by name with the given JSON arguments.
-    pub async fn call_tool(
+    async fn call_tool(
         &self,
         name: &str,
         args: serde_json::Value,
@@ -55,7 +67,6 @@ impl McpClient {
                     output_parts.push(text.text.clone());
                 }
                 _ => {
-                    // For non-text content, serialize it
                     if let Ok(json) = serde_json::to_value(content) {
                         output_parts.push(json.to_string());
                     }
