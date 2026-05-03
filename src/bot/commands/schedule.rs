@@ -193,6 +193,33 @@ async fn enable(
     Ok(())
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_normalize_cron_5_fields_prepends_seconds() {
+        assert_eq!(normalize_cron("0 8 * * *"), "0 0 8 * * *");
+        assert_eq!(normalize_cron("30 9 * * 1"), "0 30 9 * * 1");
+        assert_eq!(normalize_cron("*/15 * * * *"), "0 */15 * * * *");
+        assert_eq!(normalize_cron("0 18 * * 1-5"), "0 0 18 * * 1-5");
+    }
+
+    #[test]
+    fn test_normalize_cron_6_fields_unchanged() {
+        assert_eq!(normalize_cron("0 0 8 * * *"), "0 0 8 * * *");
+        assert_eq!(normalize_cron("0 30 9 * * 1"), "0 30 9 * * 1");
+        assert_eq!(normalize_cron("0 */15 * * * *"), "0 */15 * * * *");
+    }
+
+    #[test]
+    fn test_normalize_cron_other_field_counts_unchanged() {
+        // Fewer or more than 5/6 fields — don't mangle them
+        assert_eq!(normalize_cron("* *"), "* *");
+        assert_eq!(normalize_cron("0 0 8 * * * *"), "0 0 8 * * * *");
+    }
+}
+
 /// Disable a scheduled job.
 #[poise::command(slash_command, prefix_command)]
 async fn disable(
