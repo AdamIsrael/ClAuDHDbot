@@ -82,11 +82,26 @@ pub async fn run(
                 let http = ctx.http.clone();
                 let scheduler = Scheduler::start(&db, http, config.discord.owner_id).await?;
 
+                let mcp = Arc::new(mcp);
+
+                if config.digest.enabled {
+                    if let Err(e) = scheduler
+                        .lock()
+                        .await
+                        .register_digest(db.clone(), mcp.clone(), config.digest.clone())
+                        .await
+                    {
+                        tracing::error!("Failed to register daily digest: {e}");
+                    }
+                } else {
+                    tracing::info!("Daily digest disabled in config");
+                }
+
                 tracing::info!("Bot is ready!");
                 Ok(Data {
                     db,
                     llm,
-                    mcp: Arc::new(mcp),
+                    mcp,
                     scheduler,
                     config,
                 })

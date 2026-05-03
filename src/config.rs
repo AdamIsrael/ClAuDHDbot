@@ -13,6 +13,8 @@ pub struct Config {
     pub database: DatabaseConfig,
     #[serde(default)]
     pub mcp: McpConfig,
+    #[serde(default)]
+    pub digest: DigestConfig,
 }
 
 #[derive(Debug, Deserialize, Clone)]
@@ -51,6 +53,58 @@ pub struct McpServerConfig {
     pub args: Vec<String>,
     #[serde(default)]
     pub env: std::collections::HashMap<String, String>,
+}
+
+/// Daily Digest: a recurring DM summarising tasks and (optionally) calendar.
+#[derive(Debug, Deserialize, Clone)]
+pub struct DigestConfig {
+    /// When false (default), the digest does not run.
+    #[serde(default)]
+    pub enabled: bool,
+    /// Six-field cron expression (with seconds). Default: 8am daily.
+    #[serde(default = "default_digest_cron")]
+    pub cron: String,
+    /// Lowest priority of task to include in the digest. Default: "high".
+    /// Valid values: "low", "medium", "high", "urgent".
+    #[serde(default = "default_min_priority")]
+    pub min_priority: String,
+    /// Optional calendar section: invokes an MCP tool and appends its text output.
+    pub calendar: Option<DigestSectionConfig>,
+}
+
+impl Default for DigestConfig {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            cron: default_digest_cron(),
+            min_priority: default_min_priority(),
+            calendar: None,
+        }
+    }
+}
+
+/// One MCP-backed section of the digest (e.g. calendar, weather).
+#[derive(Debug, Deserialize, Clone)]
+pub struct DigestSectionConfig {
+    /// MCP server name as configured under `[[mcp.servers]]`.
+    pub mcp_server: String,
+    /// Tool name on that server (without the `server.` prefix).
+    pub tool: String,
+    /// JSON arguments passed to the tool. Defaults to `{}`.
+    #[serde(default = "default_section_args")]
+    pub args: serde_json::Value,
+}
+
+fn default_digest_cron() -> String {
+    "0 0 8 * * *".to_string()
+}
+
+fn default_min_priority() -> String {
+    "high".to_string()
+}
+
+fn default_section_args() -> serde_json::Value {
+    serde_json::json!({})
 }
 
 pub fn load() -> anyhow::Result<Config> {

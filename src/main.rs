@@ -1,6 +1,7 @@
 mod bot;
 mod config;
 mod db;
+mod digest;
 mod llm;
 mod mcp;
 mod models;

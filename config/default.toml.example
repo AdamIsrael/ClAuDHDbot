@@ -9,3 +9,18 @@ url = "sqlite:claudhdbot.db?mode=rwc"
 [llm]
 provider = "claude"
 model = "claude-sonnet-4-20250514"
+
+# Daily Digest — a recurring DM with high-priority tasks (and optional
+# calendar). Disabled by default; set `enabled = true` to turn it on.
+[digest]
+enabled = false
+# Six-field cron (with seconds). Default: 8am every day.
+cron = "0 0 8 * * *"
+# Lowest priority of task to include. One of: low, medium, high, urgent.
+min_priority = "high"
+
+# Optional: pull today's calendar via an MCP tool.
+# [digest.calendar]
+# mcp_server = "Fastmail CalDav"
+# tool = "list_events_today"
+# args = {}

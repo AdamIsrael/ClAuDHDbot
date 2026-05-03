@@ -6,6 +6,8 @@ use sqlx::SqlitePool;
 use tokio::sync::Mutex;
 use tokio_cron_scheduler::{Job, JobScheduler};
 
+use crate::config::DigestConfig;
+use crate::mcp::McpManager;
 use crate::models::schedule::Schedule;
 
 pub struct Scheduler {
@@ -76,6 +78,40 @@ impl Scheduler {
         if let Some(uuid) = self.job_ids.remove(&schedule_id) {
             self.job_scheduler.remove(&uuid).await?;
         }
+        Ok(())
+    }
+
+    /// Register the recurring Daily Digest job. The digest is built fresh on
+    /// each fire from current DB state and the configured MCP sections.
+    pub async fn register_digest(
+        &mut self,
+        pool: SqlitePool,
+        mcp: Arc<McpManager>,
+        digest_config: DigestConfig,
+    ) -> anyhow::Result<()> {
+        let http = self.http.clone();
+        let owner_id = self.owner_id;
+        let cron = digest_config.cron.clone();
+
+        let job = Job::new_async(cron.as_str(), move |_uuid, _lock| {
+            let http = http.clone();
+            let pool = pool.clone();
+            let mcp = mcp.clone();
+            let cfg = digest_config.clone();
+            Box::pin(async move {
+                match crate::digest::build(&pool, mcp, &cfg).await {
+                    Ok(message) => {
+                        if let Err(e) = send_dm(&http, owner_id, &message).await {
+                            tracing::error!("Daily digest failed to send DM: {e}");
+                        }
+                    }
+                    Err(e) => tracing::error!("Daily digest build failed: {e}"),
+                }
+            })
+        })?;
+
+        self.job_scheduler.add(job).await?;
+        tracing::info!("Daily digest registered (cron: {cron})");
         Ok(())
     }
 }
