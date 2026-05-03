@@ -66,6 +66,29 @@ Configuration is loaded from TOML files and environment variables (via [figment]
 - Environment variables prefixed `CLAUDHD_` with `__` as nested separator
 - Set `CLAUDHD_CONFIG_DIR` to override the config directory location
 
+### Database
+
+The bot persists tasks and schedules in a SQLite database. The connection URL is configurable via TOML or environment variable; everything else (WAL journal mode, auto-create on first run, migrations) is handled automatically.
+
+In `$HOME/.config/claudhdbot/default.toml`:
+
+```toml
+[database]
+url = "sqlite:claudhdbot.db?mode=rwc"
+```
+
+Or via environment variable (overrides the TOML value):
+
+```
+CLAUDHD_DATABASE__URL=sqlite:/var/lib/claudhdbot/claudhdbot.db?mode=rwc
+```
+
+URL format notes:
+
+- `sqlite:<path>` — relative paths are resolved against the working directory; use an absolute path to keep state in a fixed location.
+- `?mode=rwc` — read/write/create. Drop the `mode` to fail if the file is missing.
+- `sqlite::memory:` — ephemeral in-memory database (state lost on exit; mainly useful for tests).
+
 ### MCP Servers
 
 Define MCP servers in `$HOME/.config/claudhdbot/mcp_servers.toml` (see `config/mcp_servers.toml.example`):
